@@ -82,16 +82,16 @@ label{display:block;font-size:.85rem;color:var(--mut);margin-top:8px}
   <h2>Descubre tu aporte</h2>
   <p class="mut">Ingresa el código que acompaña al QR de tu envase y mira de dónde viene tu producto y cuánto ayudaste.</p>
   <div class="row"><input id="q" placeholder="Ej: L-001" autocomplete="off"><button id="qb">Ver mi producto</button></div>
-  <p class="err" id="qerr"></p>
+  <p class="err" id="qerr">No encontramos ese código todavía. Revisa que esté bien escrito.</p>
  </section>
  <section>
   <h2>Nuestro aporte total 🌱</h2>
   <div class="grid">
-   <div class="stat"><b id="goal">300</b><span>kg rescatados al mes (meta)</span></div>
-   <div class="stat"><b id="total">0 kg</b><span>rescatados hasta ahora</span></div>
+   <div class="stat"><b id="goal">100</b><span>kg rescatados al mes (meta)</span></div>
+   <div class="stat"><b id="total">0,5 kg</b><span>rescatados hasta ahora</span></div>
   </div>
-  <div class="bar"><i id="prog" style="width: 0%;"></i></div>
-  <p class="mut" id="progTxt">Estamos comenzando: muy pronto verás aquí los primeros lotes rescatados.</p>
+  <div class="bar"><i id="prog" style="width: 0.5%;"></i></div>
+  <p class="mut" id="progTxt">¡Vamos en 1% de la meta mensual! Gracias por sumarte.</p>
   <h3>Por alimento</h3><div id="byF"></div>
  </section>
  <section class="soon"><h2>Próximamente más productos</h2><p class="mut">Estamos preparando nuevas formas de rescatar comida. ¡Quédate atento!</p></section>
@@ -153,7 +153,7 @@ label{display:block;font-size:.85rem;color:var(--mut);margin-top:8px}
 </div>
 </main>
 
-<script id="snacky-data" type="application/json">{"goalKg":100,"defaultOrigin":"Vega Central, Independencia","products":[{"id":"original","name":"Snacky Original","g":50,"desc":"Chips crocantes de fruta y verdura rescatada."}],"lots":[{"code":"LTE-001-SNCKY-MNZA","product":"original","ingredients":[{"name":"Plátano","pct":25,"type":"fruta"},{"name":"Manzana","pct":25,"type":"fruta"},{"name":"Naranja","pct":25,"type":"fruta"},{"name":"Zanahoria","pct":25,"type":"verdura"}],"origin":"Vega Central, Recoleta","date":"2026-11-24","kg":0.5}]}</script>
+<script id="snacky-data" type="application/json">{"goalKg":100,"defaultOrigin":"Vega Central, Independencia","products":[{"id":"original","name":"Snacky Original","g":50,"desc":"Chips crocantes de fruta y verdura rescatada."}],"lots":[{"code":"SNCKY-VRDES-001","product":"original","ingredients":[{"name":"Plátano","pct":25,"type":"fruta"},{"name":"Manzana","pct":25,"type":"fruta"},{"name":"Zanahoria","pct":25,"type":"verdura"},{"name":"Naranja","pct":25,"type":"fruta"}],"origin":"Vega Central, Recoleta","date":"2026-11-18","kg":1}]}</script>
 <script>
 (function(){
 var HASH="8a36c1edf4896e8b73d009d9dee7f1daf67da758a2b1e90c9ec0f9a4bf84b1a2";
@@ -285,5 +285,6 @@ $("aSave").onclick=function(){
 };
 })();
 </script>
-</body>
-</html>
+
+
+</body></html>
