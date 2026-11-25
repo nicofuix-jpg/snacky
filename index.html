@@ -75,7 +75,7 @@ label{display:block;font-size:.85rem;color:var(--mut);margin-top:8px}
  </section>
  <section>
   <h2>¿Qué alimentos rescatamos y dónde?</h2>
-  <div class="chips"><span>🍎 Manzana</span><span>🍌 Plátano</span><span>🥕 Zanahoria</span><span>🟣 Betarraga</span></div>
+  <div class="chips"><span>🍌 Plátano</span><span>🍎 Manzana</span><span>🍊 Naranja</span><span>🥕 Zanahoria</span><span>🥝 Kiwi</span><span>🥬 Acelga</span><span>🟣 Betarraga</span><span>y más, según la temporada</span></div>
   <p>Los rescatamos principalmente en la <b>Vega Central, en Independencia (Santiago)</b>.</p>
  </section>
  <section class="code">
@@ -105,6 +105,10 @@ label{display:block;font-size:.85rem;color:var(--mut);margin-top:8px}
   <div id="lInfo"></div>
  </section>
  <section>
+  <h2>Ingredientes de tu lote</h2>
+  <div id="lIng"></div>
+ </section>
+ <section>
   <h2>Tu aporte por unidad 🌱</h2>
   <div id="lUnit"></div>
   <h3>Si lo compras regularmente</h3>
@@ -128,12 +132,18 @@ label{display:block;font-size:.85rem;color:var(--mut);margin-top:8px}
   <div id="panel" style="display:none">
    <label>Meta mensual (kg rescatados)</label><input id="aGoal" type="number" min="0">
    <h3>Producto</h3>
-   <p class="mut">Gramos por unidad, % de fruta y % de verdura. Si ambos % son 0, la página muestra “por definir”.</p>
+   <p class="mut">Gramos por unidad.</p>
    <div id="aProds"></div>
    <h3>Agregar lote</h3>
    <div class="row"><input id="aCode" placeholder="Código (letras, números y guiones)"><select id="aProd"></select></div>
-   <div class="row"><select id="aFood"><option>Manzana</option><option>Plátano</option><option>Zanahoria</option><option>Betarraga</option></select><input id="aKg" type="number" min="0" step="0.1" placeholder="Kg rescatados"></div>
-   <div class="row"><input id="aOrigin" placeholder="Origen"><input id="aDate" type="date"></div>
+   <div class="row"><input id="aKg" type="number" min="0" step="0.1" placeholder="Kg rescatados"><input id="aDate" type="date"></div>
+   <div class="row"><input id="aOrigin" placeholder="Origen"></div>
+   <h3>Ingredientes del lote</h3>
+   <p class="mut">Elige cada ingrediente y su porcentaje. Deben sumar 100%.</p>
+   <div class="row"><select id="iName"></select><input id="iOther" placeholder="Nombre del ingrediente" style="display:none"><select id="iType" style="display:none"><option value="fruta">Fruta</option><option value="verdura">Verdura</option></select><input id="iPct" type="number" min="0.1" max="100" step="0.1" placeholder="%"></div>
+   <div class="row"><button id="iAdd" class="sec">Agregar ingrediente</button><button id="iEq" class="sec">Repartir por igual</button></div>
+   <div id="iList"></div>
+   <p class="mut" id="iTot"></p>
    <div class="row"><button id="aAdd" class="sec">Agregar lote</button></div>
    <div id="aList"></div>
    <div class="row"><button id="aSave">Descargar página actualizada</button><button id="aBack" class="sec">Ver página</button></div>
@@ -143,7 +153,7 @@ label{display:block;font-size:.85rem;color:var(--mut);margin-top:8px}
 </div>
 </main>
 
-<script id="snacky-data" type="application/json">{"goalKg":100,"defaultOrigin":"Vega Central, Independencia","products":[{"id":"original","name":"Snacky Original","g":50,"fruit":75,"veg":25,"desc":"Chips crocantes de fruta y verdura rescatada."}],"lots":[{"code":"LTE-001-SNCKY-MNZA","product":"original","food":"Manzana","origin":"Vega Central, Recoleta","date":"2026-11-24","kg":0.5}]}</script>
+<script id="snacky-data" type="application/json">{"goalKg":100,"defaultOrigin":"Vega Central, Independencia","products":[{"id":"original","name":"Snacky Original","g":50,"desc":"Chips crocantes de fruta y verdura rescatada."}],"lots":[{"code":"LTE-001-SNCKY-MNZA","product":"original","ingredients":[{"name":"Plátano","pct":25,"type":"fruta"},{"name":"Manzana","pct":25,"type":"fruta"},{"name":"Naranja","pct":25,"type":"fruta"},{"name":"Zanahoria","pct":25,"type":"verdura"}],"origin":"Vega Central, Recoleta","date":"2026-11-24","kg":0.5}]}</script>
 <script>
 (function(){
 var HASH="8a36c1edf4896e8b73d009d9dee7f1daf67da758a2b1e90c9ec0f9a4bf84b1a2";
@@ -152,19 +162,22 @@ var $=function(i){return document.getElementById(i)};
 var fmt=function(n){return Number(n).toLocaleString("es-CL",{maximumFractionDigits:1})};
 var esc=function(s){var d=document.createElement("div");d.textContent=s;return d.innerHTML};
 var dt=function(s){if(!s)return"";var p=s.split("-");return p[2]+"/"+p[1]+"/"+p[0]};
-var emoji={"Manzana":"🍎","Plátano":"🍌","Zanahoria":"🥕","Betarraga":"🟣"};
-function fresh(p){return p.g*((p.fruit||0)/100*10+(p.veg||0)/100*7)}
+var CAT=[["Plátano","fruta","🍌"],["Manzana","fruta","🍎"],["Naranja","fruta","🍊"],["Kiwi","fruta","🥝"],["Pera","fruta","🍐"],["Frutilla","fruta","🍓"],["Durazno","fruta","🍑"],["Uva","fruta","🍇"],["Limón","fruta","🍋"],["Zanahoria","verdura","🥕"],["Betarraga","verdura","🟣"],["Acelga","verdura","🥬"],["Espinaca","verdura","🥬"],["Zapallo","verdura","🎃"],["Pepino","verdura","🥒"]];
+function info(n){var r=CAT.filter(function(c){return c[0].toLowerCase()===String(n).toLowerCase()})[0];return r?{type:r[1],emoji:r[2]}:{type:"fruta",emoji:"🍃"}}
+D.lots.forEach(function(l){if(!l.ingredients||!l.ingredients.length){var n=l.food||"Mix";l.ingredients=[{name:n,pct:100,type:info(n).type}]}});
+function fresh(p,l){return p.g*(l.ingredients||[]).reduce(function(a,i){return a+(i.pct||0)/100*(i.type==="verdura"?7:10)},0)}
 function prod(id){return D.products.filter(function(x){return x.id===id})[0]}
 function pname(id){var p=prod(id);return p?p.name:id}
 function findLot(c){c=(c||"").toLowerCase();return D.lots.filter(function(l){return l.code.toLowerCase()===c})[0]}
+function ingText(l){return l.ingredients.map(function(i){return info(i.name).emoji+" "+i.name+" "+fmt(i.pct)+"%"}).join(" · ")}
 function bars(map,tot){
  var k=Object.keys(map).filter(function(x){return map[x]>0});
  if(!k.length)return '<p class="mut">Se mostrará cuando se registren los primeros lotes.</p>';
- return k.sort(function(a,b){return map[b]-map[a]}).map(function(x){return '<div class="br"><div class="t"><span>'+x+'</span><b>'+fmt(map[x])+' kg</b></div><div class="bar"><i style="width:'+(map[x]/tot*100)+'%"></i></div></div>'}).join("")
+ return k.sort(function(a,b){return map[b]-map[a]}).map(function(x){return '<div class="br"><div class="t"><span>'+esc(x)+'</span><b>'+fmt(map[x])+' kg</b></div><div class="bar"><i style="width:'+(map[x]/tot*100)+'%"></i></div></div>'}).join("")
 }
 function renderHome(){
  var tot=0,bf={};
- D.lots.forEach(function(l){var k=Number(l.kg||0);tot+=k;var f=(emoji[l.food]||"🍃")+" "+l.food;bf[f]=(bf[f]||0)+k});
+ D.lots.forEach(function(l){var k=Number(l.kg||0);tot+=k;l.ingredients.forEach(function(i){var n=info(i.name).emoji+" "+i.name;bf[n]=(bf[n]||0)+k*(i.pct||0)/100})});
  $("goal").textContent=fmt(D.goalKg);$("total").textContent=fmt(tot)+" kg";
  var pct=D.goalKg>0?Math.min(100,tot/D.goalKg*100):0;
  $("prog").style.width=pct+"%";
@@ -172,14 +185,15 @@ function renderHome(){
  $("byF").innerHTML=bars(bf,tot);
 }
 function renderLot(l){
- var p=prod(l.product),f=fresh(p);
+ var p=prod(l.product),f=fresh(p,l);
  $("lDesc").textContent=p.name+" · "+p.desc;
- $("lInfo").innerHTML='<div class="lot"><div><b>'+(emoji[l.food]||"🍃")+' Código '+esc(l.code)+'</b><small>Alimento: '+esc(l.food)+'</small><small>Origen: '+esc(l.origin)+'</small>'+(l.date?'<small>Fecha: '+dt(l.date)+'</small>':'')+'</div><b>'+fmt(l.kg)+' kg<br><small>rescatados en este lote</small></b></div>';
- $("lUnit").innerHTML=f>0?'<div class="stat"><b>≈ '+fmt(Math.round(f))+' g*</b><span>de fruta y verdura rescatada en cada '+esc(p.name)+' de '+fmt(p.g)+' g</span></div>':'<p class="mut">El aporte por unidad de este producto está por definir.</p>';
- calc(p);$("freq").onchange=function(){calc(p)};
+ $("lInfo").innerHTML='<div class="lot"><div><b>Código '+esc(l.code)+'</b><small>Origen: '+esc(l.origin)+'</small>'+(l.date?'<small>Fecha: '+dt(l.date)+'</small>':'')+'</div><b>'+fmt(l.kg)+' kg<br><small>rescatados en este lote</small></b></div>';
+ $("lIng").innerHTML=l.ingredients.map(function(i){return '<div class="br"><div class="t"><span>'+info(i.name).emoji+' '+esc(i.name)+'</span><b>'+fmt(i.pct)+'%</b></div><div class="bar"><i style="width:'+i.pct+'%"></i></div></div>'}).join("");
+ $("lUnit").innerHTML=f>0?'<div class="stat"><b>≈ '+fmt(Math.round(f))+' g*</b><span>de fruta y verdura rescatada en cada '+esc(p.name)+' de '+fmt(p.g)+' g</span></div>':'<p class="mut">El aporte por unidad está por definir.</p>';
+ calc(p,l);$("freq").onchange=function(){calc(p,l)};
 }
-function calc(p){
- var f=fresh(p),n=+$("freq").value;
+function calc(p,l){
+ var f=fresh(p,l),n=+$("freq").value;
  if(!(f>0)){$("lReg").innerHTML="";return}
  var m=f*n*52/12/1000,y=f*n*52/1000;
  $("lReg").innerHTML='<div class="grid"><div class="stat"><b>≈ '+fmt(m)+' kg</b><span>al mes</span></div><div class="stat"><b>≈ '+fmt(y)+' kg</b><span>al año</span></div></div><p class="mut">Con '+n+' unidad'+(n>1?'es':'')+' por semana, tu compra ayuda a rescatar esa cantidad de fruta y verdura. ¡Gracias!</p>';
@@ -207,46 +221,69 @@ function route(){
 window.addEventListener("hashchange",route);
 renderHome();route();
 
-var draft=null;
+var draft=null,ing=[];
 function sha(s){var b=new TextEncoder().encode(s);return crypto.subtle.digest("SHA-256",b).then(function(h){return Array.from(new Uint8Array(h)).map(function(x){return x.toString(16).padStart(2,"0")}).join("")})}
 $("aBack").onclick=function(){location.hash=""};
+function total(){return Math.round(ing.reduce(function(a,i){return a+i.pct},0)*10)/10}
+function renderIng(){
+ $("iList").innerHTML=ing.map(function(i,k){return '<div class="lot"><div><b>'+info(i.name).emoji+' '+esc(i.name)+'</b><small>'+(i.type==="verdura"?"Verdura":"Fruta")+' · '+fmt(i.pct)+'%</small></div><button class="sec" data-k="'+k+'">Quitar</button></div>'}).join("")||'<p class="mut">Aún no agregas ingredientes.</p>';
+ Array.prototype.forEach.call($("iList").querySelectorAll("button"),function(b){b.onclick=function(){ing.splice(+b.dataset.k,1);renderIng()}});
+ var t=total();$("iTot").textContent=ing.length?"Total: "+fmt(t)+"%"+(t===100?" ✓":" (debe sumar 100%)"):"";
+}
+$("iName").innerHTML=CAT.map(function(c){return '<option value="'+c[0]+'">'+c[2]+' '+c[0]+'</option>'}).join("")+'<option value="__otro">➕ Otro…</option>';
+$("iName").onchange=function(){var o=this.value==="__otro";$("iOther").style.display=o?"":"none";$("iType").style.display=o?"":"none"};
+$("iAdd").onclick=function(){
+ var n=$("iName").value,ty;
+ if(n==="__otro"){n=$("iOther").value.trim();ty=$("iType").value;if(!n){$("aMsg").textContent="Escribe el nombre del ingrediente.";return}}else ty=info(n).type;
+ var p=parseFloat($("iPct").value);
+ if(!(p>0&&p<=100)){$("aMsg").textContent="Ingresa un porcentaje entre 0,1 y 100.";return}
+ if(ing.some(function(i){return i.name.toLowerCase()===n.toLowerCase()})){$("aMsg").textContent="Ese ingrediente ya está en la lista.";return}
+ ing.push({name:n,pct:p,type:ty});$("iPct").value="";$("iOther").value="";$("aMsg").textContent="";renderIng()
+};
+$("iEq").onclick=function(){
+ if(!ing.length)return;
+ var e=Math.floor(1000/ing.length)/10;
+ ing.forEach(function(i){i.pct=e});
+ ing[ing.length-1].pct=Math.round((100-e*(ing.length-1))*10)/10;
+ renderIng()
+};
 $("pwb").onclick=function(){
  sha($("pw").value).then(function(h){
   if(h===HASH){draft=JSON.parse(JSON.stringify(D));$("gate").style.display="none";$("panel").style.display="block";
    $("aGoal").value=draft.goalKg;$("aOrigin").value=draft.defaultOrigin;$("aDate").value=new Date().toISOString().slice(0,10);
    $("aProd").innerHTML=draft.products.map(function(p){return '<option value="'+p.id+'">'+esc(p.name)+'</option>'}).join("");
-   $("aProds").innerHTML=draft.products.map(function(p,i){return '<div class="prow"><b>'+esc(p.name)+'</b><div class="row"><input data-i="'+i+'" data-k="g" type="number" min="1" value="'+p.g+'" title="Gramos"><input data-i="'+i+'" data-k="fruit" type="number" min="0" max="100" value="'+p.fruit+'" title="% fruta"><input data-i="'+i+'" data-k="veg" type="number" min="0" max="100" value="'+p.veg+'" title="% verdura"></div><small class="mut">Gramos por unidad · % fruta · % verdura</small></div>'}).join("");
-   renderList()}
+   $("aProds").innerHTML=draft.products.map(function(p,i){return '<div class="prow"><b>'+esc(p.name)+'</b><div class="row"><input data-i="'+i+'" data-k="g" type="number" min="1" value="'+p.g+'" title="Gramos"></div></div>'}).join("");
+   ing=[];renderIng();renderList()}
   else $("pwerr").textContent="Contraseña incorrecta."
  }).catch(function(){$("pwerr").textContent="No se pudo verificar la contraseña en este navegador."})
 };
 function renderList(){
- $("aList").innerHTML=draft.lots.map(function(l,i){return '<div class="lot"><div><b>'+esc(l.code)+' · '+esc(pname(l.product))+'</b><small>'+esc(l.food)+' · '+esc(l.origin)+' · '+dt(l.date)+' · '+fmt(l.kg)+' kg</small></div><button class="sec" data-i="'+i+'">Quitar</button></div>'}).join("")||'<p class="mut">Sin lotes.</p>';
+ $("aList").innerHTML=draft.lots.map(function(l,i){return '<div class="lot"><div><b>'+esc(l.code)+' · '+esc(pname(l.product))+'</b><small>'+esc(ingText(l))+'</small><small>'+esc(l.origin)+' · '+dt(l.date)+' · '+fmt(l.kg)+' kg</small></div><button class="sec" data-i="'+i+'">Quitar</button></div>'}).join("")||'<p class="mut">Sin lotes.</p>';
  Array.prototype.forEach.call($("aList").querySelectorAll("button"),function(b){b.onclick=function(){draft.lots.splice(+b.dataset.i,1);renderList()}})
 }
 $("aAdd").onclick=function(){
  var c=$("aCode").value.trim(),kg=parseFloat($("aKg").value);
  if(!/^[A-Za-z0-9-]+$/.test(c)||c.toLowerCase()==="admin"){$("aMsg").textContent="El código solo puede tener letras, números y guiones.";return}
  if(!(kg>0)){$("aMsg").textContent="Ingresa los kg rescatados.";return}
+ if(!ing.length||total()!==100){$("aMsg").textContent="Agrega ingredientes que sumen exactamente 100%.";return}
  if(draft.lots.some(function(l){return l.code.toLowerCase()===c.toLowerCase()})){$("aMsg").textContent="Ese código ya existe.";return}
- draft.lots.push({code:c,product:$("aProd").value,food:$("aFood").value,origin:$("aOrigin").value.trim()||draft.defaultOrigin,date:$("aDate").value,kg:kg});
- $("aCode").value="";$("aKg").value="";$("aMsg").textContent="Lote agregado. Falta descargar la página actualizada y subirla.";renderList()
+ draft.lots.push({code:c,product:$("aProd").value,ingredients:JSON.parse(JSON.stringify(ing)),origin:$("aOrigin").value.trim()||draft.defaultOrigin,date:$("aDate").value,kg:kg});
+ ing=[];renderIng();$("aCode").value="";$("aKg").value="";$("aMsg").textContent="Lote agregado. Falta descargar la página actualizada y subirla.";renderList()
 };
 $("aSave").onclick=function(){
  draft.goalKg=parseFloat($("aGoal").value)||draft.goalKg;
- Array.prototype.forEach.call($("aProds").querySelectorAll("input"),function(el){var v=parseFloat(el.value);draft.products[+el.dataset.i][el.dataset.k]=isNaN(v)?0:v});
+ Array.prototype.forEach.call($("aProds").querySelectorAll("input"),function(el){var v=parseFloat(el.value);if(v>0)draft.products[+el.dataset.i].g=v});
  var c=document.documentElement.cloneNode(true);
  c.querySelector("#snacky-data").textContent=JSON.stringify(draft);
  ["gate","panel","home","lote","admin"].forEach(function(i){c.querySelector("#"+i).removeAttribute("style")});
  c.querySelector("#panel").setAttribute("style","display:none");
  c.querySelector("#logo2").removeAttribute("src");
- ["aProds","aList","aProd","lInfo","lUnit","lReg","byF"].forEach(function(i){c.querySelector("#"+i).innerHTML=""});
- c.querySelector("#pwerr").textContent="";c.querySelector("#aMsg").textContent="";
+ ["aProds","aList","aProd","iList","iName","lInfo","lIng","lUnit","lReg","byF"].forEach(function(i){c.querySelector("#"+i).innerHTML=""});
+ c.querySelector("#pwerr").textContent="";c.querySelector("#aMsg").textContent="";c.querySelector("#iTot").textContent="";
  var a=document.createElement("a");a.href=URL.createObjectURL(new Blob(["<!doctype html>\n"+c.outerHTML],{type:"text/html"}));a.download="index.html";document.body.appendChild(a);a.click();a.remove();
- $("aMsg").textContent="Descargado. Sube ese index.html a tu hosting para publicar los cambios.";
+ $("aMsg").textContent="Descargado. Sube ese index.html a GitHub para publicar los cambios.";
 };
 })();
 </script>
-
-
-</body></html>
+</body>
+</html>
